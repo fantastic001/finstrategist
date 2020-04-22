@@ -1,0 +1,31 @@
+
+* Estimate 
+
++ stock name
++ date
++ risk points
++ growth points 
+
+
+* Determining estimates 
+
++ if there is no estimate, create one
++ if there is
+  + increase values by NPV, regression, model deduction of parameters based on different models 
+
+
+* Strategy 
+
+can be 
+
++ buy
++ sell 
+
+with amount 
+
++ if BUY and there is enough of cash, buy it
++ if buy and there is no enough cash, spend all available
++ if sell and there is such amount, sell
++ if sell and there is no such amount, sell everything
+
+
