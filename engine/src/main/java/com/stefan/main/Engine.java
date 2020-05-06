@@ -5,6 +5,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import com.stefan.model.*;
@@ -20,24 +21,20 @@ public class Engine {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
-			//Product product = new Product();
-			//product.setType("pizza");
-			//product.setPrice(10);
-			//ArrayList<OrderedProduct> items = new ArrayList<OrderedProduct> ();
-			//OrderedProduct orderedProduct = new OrderedProduct(1, product);
-			//items.add(orderedProduct);
-			//Order order = new Order(items);
+
 			FactHandle fact1;
 			System.out.println("Inserting object into session");
 			if (kSession == null) System.out.println("kSession is null!");
-			//fact1 = kSession.insert(orderedProduct);
-			//fact1 = kSession.insert(order);
+			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now(), 10,12,15,2,523543253, 44));
+			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(1), 10,12,15,2,523543253, 44));
+			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(2), 10,13,15,2,523543253, 44));
+			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(3), 10,14,15,2,523543253, 44));
+			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(4), 10,15,15,2,523543253, 44));
 
-			//System.out.println("Firing rules");
-			//kSession.getAgenda().getAgendaGroup( "billing").setFocus();
-			//kSession.getAgenda().getAgendaGroup( "discounting").setFocus();
-			//kSession.getAgenda().getAgendaGroup( "preprocessing").setFocus();
-			//kSession.fireAllRules();
+
+			System.out.println("Firing rules");
+			kSession.getAgenda().getAgendaGroup( "collect").setFocus();
+			kSession.fireAllRules();
 
 
 

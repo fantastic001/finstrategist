@@ -1,6 +1,7 @@
 package rules
 
-// import model here
+import com.stefan.model.*;
+import java.time.LocalDate;
 
 import java.util.Collection;
 
@@ -8,3 +9,20 @@ import com.stefan.main.Logger
 
 global Logger logger;
 
+rule "Create initial estimations"
+    agenda-group "collect"
+    when 
+        Stock($name : ticker, $today : date, date == LocalDate.now(), $c1 : close, $d1 : dividend)
+        Stock(ticker == $name, date == LocalDate.now().minusDays(1), $c2 : close, $d2 : dividend)
+        Stock(ticker == $name, date == LocalDate.now().minusDays(2), $c3 : close, $d3 : dividend)
+        Stock(ticker == $name, date == LocalDate.now().minusDays(3), $c4 : close, $d4 : dividend)
+        Stock(ticker == $name, date == LocalDate.now().minusDays(4), $c5 : close, $d5 : dividend)
+    then 
+        logger.log("Creating estimate for " + $name);
+        float mean = ($c1 + $c2 + $c3 + $c4 + $c5) / 5;
+        float mean_dividend = ($d1 + $d2 + $d3 + $d4 + $d5) / 5;
+        // float risk = ($c1*$c1 + $c2*$c2 + $c3*$c3 + $c4*$c4 + $c5*$c5) / 5 - mean * mean;
+        float growth = $c1 / mean - 1;
+        float risk = mean_dividend / $c1 + growth;
+        insert(new Estimate($name, $today, risk,growth));
+end

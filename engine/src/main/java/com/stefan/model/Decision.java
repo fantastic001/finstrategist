@@ -1,13 +1,13 @@
 package com.stefan.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class Decision {
 	
 	
 	private String ticker; 
 	
-	private Date date; 
+	private LocalDate date; 
 	
 	private int count; 
 	
@@ -16,7 +16,7 @@ public class Decision {
 	public Decision() 
 	{
 	}
-	public Decision(String _ticker, Date _date, int _count, Action _action) {
+	public Decision(String _ticker, LocalDate _date, int _count, Action _action) {
 		super();
 		 
 		this.ticker = _ticker;
@@ -40,12 +40,12 @@ public class Decision {
 		this.ticker = newValue;
 	}
 	 
-	public Date getDate() 
+	public LocalDate getDate() 
 	{
 		return this.date;
 	}
 
-	public void setDate(Date newValue) 
+	public void setDate(LocalDate newValue) 
 	{
 		this.date = newValue;
 	}

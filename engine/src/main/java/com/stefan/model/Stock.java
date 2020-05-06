@@ -1,13 +1,13 @@
 package com.stefan.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class Stock {
 	
 	
 	private String ticker; 
 	
-	private Date date; 
+	private LocalDate date; 
 	
 	private float open; 
 	
@@ -18,11 +18,13 @@ public class Stock {
 	private float low; 
 	
 	private int volume; 
+
+	private float dividend;
 	
 	public Stock() 
 	{
 	}
-	public Stock(String _ticker, Date _date, float _open, float _close, float _high, float _low, int _volume) {
+	public Stock(String _ticker, LocalDate _date, float _open, float _close, float _high, float _low, int _volume, float _dividend) {
 		super();
 		 
 		this.ticker = _ticker;
@@ -39,6 +41,7 @@ public class Stock {
 		 
 		this.volume = _volume;
 		
+		this.dividend = _dividend;
 	}
 	
 	 
@@ -52,12 +55,12 @@ public class Stock {
 		this.ticker = newValue;
 	}
 	 
-	public Date getDate() 
+	public LocalDate getDate() 
 	{
 		return this.date;
 	}
 
-	public void setDate(Date newValue) 
+	public void setDate(LocalDate newValue) 
 	{
 		this.date = newValue;
 	}
@@ -112,4 +115,11 @@ public class Stock {
 		this.volume = newValue;
 	}
 	
+	public float getDividend() {
+		return this.dividend;
+	}
+
+	public void setDividend(float _dividend) {
+		this.dividend = _dividend;
+	}
 }

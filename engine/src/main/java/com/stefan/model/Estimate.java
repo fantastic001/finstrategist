@@ -1,13 +1,13 @@
 package com.stefan.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class Estimate {
 	
 	
 	private String ticker; 
 	
-	private Date date; 
+	private LocalDate date; 
 	
 	private float risk; 
 	
@@ -16,7 +16,7 @@ public class Estimate {
 	public Estimate() 
 	{
 	}
-	public Estimate(String _ticker, Date _date, float _risk, float _growth) {
+	public Estimate(String _ticker, LocalDate _date, float _risk, float _growth) {
 		super();
 		 
 		this.ticker = _ticker;
@@ -40,12 +40,12 @@ public class Estimate {
 		this.ticker = newValue;
 	}
 	 
-	public Date getDate() 
+	public LocalDate getDate() 
 	{
 		return this.date;
 	}
 
-	public void setDate(Date newValue) 
+	public void setDate(LocalDate newValue) 
 	{
 		this.date = newValue;
 	}
