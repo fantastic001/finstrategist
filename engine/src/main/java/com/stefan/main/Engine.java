@@ -1,4 +1,4 @@
-package com.javainuse.main;
+package com.stefan.main;
 
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
@@ -7,9 +7,9 @@ import org.kie.api.runtime.rule.FactHandle;
 
 import java.util.ArrayList;
 
-import com.javainuse.model.*;
+import com.stefan.model.*;
 
-public class DroolsTest {
+public class Engine {
 
 	public static final void main(String[] args) {
 		try {
@@ -20,27 +20,24 @@ public class DroolsTest {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
-			System.out.println("Creating product....");
-
-			Product product = new Product();
-			product.setType("pizza");
-			product.setPrice(10);
-			ArrayList<OrderedProduct> items = new ArrayList<OrderedProduct> ();
-			OrderedProduct orderedProduct = new OrderedProduct(1, product);
-			items.add(orderedProduct);
-			Order order = new Order(items);
-
+			//Product product = new Product();
+			//product.setType("pizza");
+			//product.setPrice(10);
+			//ArrayList<OrderedProduct> items = new ArrayList<OrderedProduct> ();
+			//OrderedProduct orderedProduct = new OrderedProduct(1, product);
+			//items.add(orderedProduct);
+			//Order order = new Order(items);
 			FactHandle fact1;
 			System.out.println("Inserting object into session");
 			if (kSession == null) System.out.println("kSession is null!");
-			fact1 = kSession.insert(orderedProduct);
-			fact1 = kSession.insert(order);
+			//fact1 = kSession.insert(orderedProduct);
+			//fact1 = kSession.insert(order);
 
-			System.out.println("Firing rules");
-			kSession.getAgenda().getAgendaGroup( "billing").setFocus();
-			kSession.getAgenda().getAgendaGroup( "discounting").setFocus();
-			kSession.getAgenda().getAgendaGroup( "preprocessing").setFocus();
-			kSession.fireAllRules();
+			//System.out.println("Firing rules");
+			//kSession.getAgenda().getAgendaGroup( "billing").setFocus();
+			//kSession.getAgenda().getAgendaGroup( "discounting").setFocus();
+			//kSession.getAgenda().getAgendaGroup( "preprocessing").setFocus();
+			//kSession.fireAllRules();
 
 
 

@@ -48,7 +48,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.4.0</version>
             <configuration>
-              <mainClass>com.javainuse.main.DroolsTest</mainClass>
+              <mainClass>com.stefan.main.Engine</mainClass>
             </configuration>
           </plugin>
         </plugins>

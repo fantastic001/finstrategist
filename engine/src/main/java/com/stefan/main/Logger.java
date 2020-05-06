@@ -1,4 +1,4 @@
-package com.javainuse.main;
+package com.stefan.main;
 
 public class Logger {
     public void log(String msg) {
