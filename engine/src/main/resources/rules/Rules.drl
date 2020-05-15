@@ -9,7 +9,7 @@ import com.stefan.main.Logger
 
 global Logger logger;
 
-rule "Create initial estimations"
+rule "Create initial estimations with moving average"
     agenda-group "collect"
     when 
         Stock($name : ticker, $today : date, date == LocalDate.now(), $c1 : close, $d1 : dividend)
@@ -25,4 +25,21 @@ rule "Create initial estimations"
         float growth = $c1 / mean - 1;
         float risk = mean_dividend / $c1 + growth;
         insert(new Estimate($name, $today, risk,growth));
+end
+
+
+rule "Create initial estimations with linear yearly estimate"
+    agenda-group "collect"
+    when 
+        Stock($name : ticker, $today : date, date == LocalDate.now(), $c1 : close)
+        Stock(ticker == $name, date == LocalDate.now().minusDays(365), $c2 : close)
+        accumulate(Stock(ticker == $name, eval(date.isAfter(LocalDate.now().minusDays(365))), $dividend : dividend, $close : close),
+            $mean_dividend : average($dividend),
+            $mean_price : average($close)
+        )
+    then 
+        logger.log("Creating estimate for " + $name);
+        double growth = ($c1 - $c2) / $c2 - 1;
+        double risk = $mean_dividend / $mean_price - 1;
+        insert(new Estimate($name, $today, (float) risk, (float) growth));
 end
