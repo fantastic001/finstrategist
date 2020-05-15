@@ -4,10 +4,34 @@ import com.stefan.model.*;
 import java.time.LocalDate;
 
 import java.util.Collection;
+import java.util.ArrayList;
 
 import com.stefan.main.Logger
 
 global Logger logger;
+
+rule "If portfolio is not avalable in memory, create it"
+    agenda-group "preprocess"
+    when 
+        not (exists Portfolio()) 
+    then 
+        logger.log("Creating empty portfolio");
+        insert(new Portfolio(new ArrayList<>(), 0));
+end
+
+rule "if there is stock not present in portfolio (even with count = 0), add it"
+    agenda-group "preprocess"
+    when 
+        $portfolio : Portfolio($assets : assets)
+        Stock($name : ticker)
+        not (exists PortfolioAsset(ticker == $name))
+    then 
+        logger.log("Adding stock " + $name + " to portfolio with count = 0");
+        PortfolioAsset asset = new PortfolioAsset($name, 0);
+        $portfolio.getAssets().add(asset);
+        insert(asset);
+
+end
 
 rule "Create initial estimations with moving average"
     agenda-group "collect"
@@ -43,3 +67,103 @@ rule "Create initial estimations with linear yearly estimate"
         double risk = $mean_dividend / $mean_price - 1;
         insert(new Estimate($name, $today, (float) risk, (float) growth));
 end
+
+rule "If there is no prepared decision for given stock and given day but there is estimation, initial create decision"
+    agenda-group "estimate"
+    when 
+        Stock($name : ticker, date == LocalDate.now())
+        exists Estimate(ticker == $name, date == LocalDate.now())
+        not (exists Decision(ticker == $name, date == LocalDate.now()))
+    then 
+        logger.log("Creating empty decision for " + $name);
+        insert(new Decision($name, LocalDate.now(), 0, null));
+end
+
+// Decision making
+
+rule "Decision making"
+    agenda-group "decide"
+    when 
+        Stock($name : ticker, date == LocalDate.now())
+        $decision : Decision(ticker == $name, date == LocalDate.now(), action == null)
+        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk),
+            $expected_growth : average($g),
+            $expected_risk : average($r)
+        )
+    then 
+        logger.log("Found undecided estimation");
+        
+end
+
+
+// Portfolio decision 
+
+rule "Portfolio decisions - buying with enough cash"
+    agenda-group "portfolio"
+    when 
+        Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
+        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        $portfolio : Portfolio(cash >= $price * $count, $cash : cash )
+        $asset : PortfolioAsset(ticker == $name, $asset_count : count)
+    then 
+        modify ($asset) {
+            setCount($asset_count + $count)
+        }
+        modify ($portfolio) {
+            setCash($cash - $price * $count)
+        }
+end 
+
+
+rule "Portfolio decisions - buying without enough cash"
+    agenda-group "portfolio"
+    when 
+        $decision : Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
+        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        $portfolio : Portfolio(cash < $price * $count, $cash : cash )
+        $asset : PortfolioAsset(ticker == $name, $asset_count : count)
+    then 
+        int newCount = (int) ($cash / $price);
+        modify ($decision) {
+            setCount(newCount)
+        }
+        modify ($asset) {
+            setCount($asset_count + newCount)
+        }
+        modify ($portfolio) {
+            setCash($cash - $price * newCount)
+        }
+end 
+
+
+rule "Portfolio decisions - selling existing assets"
+    agenda-group "portfolio"
+    when 
+        Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
+        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        $portfolio : Portfolio($cash : cash)
+        $asset : PortfolioAsset(ticker == $name, $asset_count : count, count >= $count)
+    then 
+        modify ($asset) {
+            setCount($asset_count - $count)
+        }
+        modify ($portfolio) {
+            setCash($cash + $price * $count)
+        }
+end 
+
+rule "Portfolio decisions - selling non-existing assets"
+    agenda-group "portfolio"
+    when 
+        Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
+        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        $portfolio : Portfolio($cash : cash)
+        $asset : PortfolioAsset(ticker == $name, $asset_count : count, count < $count)
+    then 
+        modify ($asset) {
+            setCount(0)
+        }
+        modify ($portfolio) {
+            setCash($cash + $price * $asset_count)
+        }
+end 
