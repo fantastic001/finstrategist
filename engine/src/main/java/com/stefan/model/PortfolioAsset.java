@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class PortfolioAsset {
 	
-	
+	private long id; 
 	private String ticker; 
 	
 	private int count; 
@@ -19,6 +19,13 @@ public class PortfolioAsset {
 		 
 		this.count = _count;
 		
+	}
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 	
 	 

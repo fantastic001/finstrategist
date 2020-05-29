@@ -10,9 +10,10 @@ import java.util.ArrayList;
 
 import com.stefan.model.*;
 
+@org.springframework.stereotype.Service
 public class Engine {
 
-	public static final void main(String[] args) {
+	public KieSession getSession() {
 		try {
 			System.out.println("Starting application....");
 			KieServices ks = KieServices.Factory.get();
@@ -21,7 +22,15 @@ public class Engine {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
+			return kSession;
+		} catch (Throwable t) {
+			t.printStackTrace();
+			return null;
+		}
 
+	}
+	public void sample(KieSession kSession) {
+		try { 
 			FactHandle fact1;
 			System.out.println("Inserting object into session");
 			if (kSession == null) System.out.println("kSession is null!");

@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Decision {
 	
-	
+	private long id;
 	private String ticker; 
 	
 	private LocalDate date; 
@@ -27,6 +27,13 @@ public class Decision {
 		 
 		this.action = _action;
 		
+	}
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 	
 	 

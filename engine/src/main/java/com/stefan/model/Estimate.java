@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Estimate {
 	
-	
+	private long id; 
 	private String ticker; 
 	
 	private LocalDate date; 
@@ -69,5 +69,14 @@ public class Estimate {
 	{
 		this.growth = newValue;
 	}
+
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+
 	
 }

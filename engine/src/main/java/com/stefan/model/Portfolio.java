@@ -6,6 +6,7 @@ import java.util.Collection;
 public class Portfolio {
 	
 	
+	private long id;
 	private Collection<PortfolioAsset> assets; 
 	
 	private float cash; 
@@ -20,6 +21,13 @@ public class Portfolio {
 		 
 		this.cash = _cash;
 		
+	}
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 	
 	 

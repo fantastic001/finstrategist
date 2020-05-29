@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public class Stock {
 	
+	private long id;
 	
 	private String ticker; 
 	
@@ -121,5 +122,12 @@ public class Stock {
 
 	public void setDividend(float _dividend) {
 		this.dividend = _dividend;
+	}
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
 	}
 }
