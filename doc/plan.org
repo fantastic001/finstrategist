@@ -29,3 +29,15 @@ with amount
 + if sell and there is no such amount, sell everything
 
 
+
+* Future works
+
++ investigate earnings
++ quarterly earnings
++ sustainability
++ recommendations
++ history
++ balance sheet
++ cashflow
++ options
++ dividends
