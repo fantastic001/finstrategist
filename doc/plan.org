@@ -74,3 +74,12 @@ with amount
 + buy bonds if government has rickiness above A
 + increase portfolio cash when coupon is paid
 + increase portfolio cash when bond is expired
+
+
+
+* Reporting 
+
++ action made with bash story explained
++ every day current portfolio report
++ alarm system when portfolio drops below some defined value
++ alarm system when portfolio drops by specified percentage by user on daily basis
