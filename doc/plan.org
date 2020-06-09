@@ -9,7 +9,7 @@
 
 * Determining estimates 
 
-+ if there is no estimate, create one
++ if there is no estimate, create one if stock is in whitelisted industry
 + if there is
   + increase values by NPV, regression, model deduction of parameters based on different models 
 
@@ -32,12 +32,45 @@ with amount
 
 * Future works
 
-+ investigate earnings
-+ quarterly earnings
-+ sustainability
-+ recommendations
-+ history
-+ balance sheet
-+ cashflow
-+ options
-+ dividends
+** Estimating 
+
++ estimate growth based on earning growth and risk by standard deviation
++ estimate growth in assets based on balance sheet and risk based on riskiness of individual assets defined by user 
++ create estimate based on earnings per share growth and riskness as standard deviation
+
+** Postprocessing of estimates
+
++ if there is yahoo finance recommendation for given stock, decrease all risks by 10%
++ if dividend yield is above 3% and below 5%, decrease risk by 10%
++ if dividend is above 5%, decrease risk by 40%
++ if wealth is above user defined value, increase riskiness for every estimate by 20%
++ if company has debt-equity ratio above user specified threshold, all estimates riskinesses are increased by 20%
++ if company has net profit marin below 2%, increase risk of all stimates by 20%
++ if net profit margin is above 30%, decrease risk by 10%
++ if quick ratio is below 20%, increae risk by 70%
++ if QR is between 20% and 70%, increase risk y 10%
++ if QR is above 200%, decrease risk by 10%
+
+
++ if estimate.growth is above S&P 500 and risk is below user defined threshold, proced with decision
+
+
+
+
+** Dividend rules
+
++ increase portfolio cash for each dividend payment 
+
+** Option trading
+
++ if there is call option and stock price is below its value, sell option and buy stock
++ if there is put option and stock price is above value, sell option andsell stock
++ if option expires, delete it from portfolio
+
+
+
+** Bonds
+
++ buy bonds if government has rickiness above A
++ increase portfolio cash when coupon is paid
++ increase portfolio cash when bond is expired
