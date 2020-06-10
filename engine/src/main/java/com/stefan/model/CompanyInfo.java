@@ -1,6 +1,7 @@
 package com.stefan.model;
 
 import java.util.Date;
+import java.time.LocalDate;
 
 public class CompanyInfo {
 	
@@ -24,11 +25,13 @@ public class CompanyInfo {
 	private double liabilities; 
 	
 	private double currentLiabilities; 
+
+	private LocalDate date;
 	
 	public CompanyInfo() 
 	{
 	}
-	public CompanyInfo(String _ticker, double _totalRevenue, double _netIncome, double _assets, double _cash, double _netReceivables, double _inventory, double _otherCurrentAssets, double _liabilities, double _currentLiabilities) {
+	public CompanyInfo(String _ticker, double _totalRevenue, double _netIncome, double _assets, double _cash, double _netReceivables, double _inventory, double _otherCurrentAssets, double _liabilities, double _currentLiabilities, LocalDate _date) {
 		super();
 		 
 		this.ticker = _ticker;
@@ -50,6 +53,8 @@ public class CompanyInfo {
 		this.liabilities = _liabilities;
 		 
 		this.currentLiabilities = _currentLiabilities;
+
+		this.date = _date;
 		
 	}
 	
@@ -153,5 +158,15 @@ public class CompanyInfo {
 	{
 		this.currentLiabilities = newValue;
 	}
+
+	public LocalDate getDate() {
+		return this.date;
+	}
+
+	public void setDate(LocalDate date) {
+		this.date = date;
+	}
+
+
 	
 }
