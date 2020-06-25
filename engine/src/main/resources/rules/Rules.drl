@@ -72,14 +72,14 @@ rule "Create estimate based on earnings growth"
 
     agenda-group "collect"
     when 
-        Stock($ticker : name, date == LocalDate.now())
+        Stock($ticker : ticker, date == LocalDate.now(), $today : date)
         CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : totalRevenue)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : toalRevenue)
-        accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue)
+        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : totalRevenue)
+        accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue),
             $mean_revenue : average($r)
         )
     then 
-        insert(new Estimate(($revenue - $revenueOld) / $revenueOld, ($revenue - $mean_revenue) / $mean_revenue));
+        insert(new Estimate($ticker, $today, (float) (($revenue - $revenueOld) / $revenueOld), (float) (($revenue - $mean_revenue) / $mean_revenue)));
     end
 
 
@@ -87,14 +87,14 @@ rule "Create estimate based on assets growth"
 
     agenda-group "collect"
     when 
-        Stock($ticker : name, date == LocalDate.now())
+        Stock($ticker : ticker, date == LocalDate.now(), $today : date)
         CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : assets)
         CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : assets)
-        accumulate(CompanyInfo(ticker == $ticker, $r : assets)
+        accumulate(CompanyInfo(ticker == $ticker, $r : assets),
             $mean_revenue : average($r)
         )
     then 
-        insert(new Estimate(($revenue - $revenueOld) / $revenueOld, ($revenue - $mean_revenue) / $mean_revenue));
+        insert(new Estimate($ticker, $today, (float) (($revenue - $revenueOld) / $revenueOld), (float) (($revenue - $mean_revenue) / $mean_revenue)));
     end
 
 
@@ -102,14 +102,14 @@ rule "Create estimate based on earnings over share"
 
     agenda-group "collect"
     when 
-        Stock($ticker : name, date == LocalDate.now(), $close : close)
+        Stock($ticker : ticker, date == LocalDate.now(), $close : close, $today : date)
         CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : totalRevenue)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : toalRevenue)
-        accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue)
+        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : totalRevenue)
+        accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue),
             $mean_revenue : average($r / $close)
         )
     then 
-        insert(new Estimate(($revenue/$close - $revenueOld/$close) / $revenueOld/$close, ($revenue/$close - $mean_revenue) / $mean_revenue / $close));
+        insert(new Estimate($ticker, $today, (float) (($revenue/$close - $revenueOld/$close) / $revenueOld/$close), (float) (($revenue/$close - $mean_revenue) / $mean_revenue / $close)));
     end
 
 rule "If there is recommendation for buying, decrease risk"
@@ -120,7 +120,7 @@ rule "If there is recommendation for buying, decrease risk"
         Recommendation(ticker == $ticker, date == LocalDate.now(), action == "BUY")
     then 
         modify($estimate) {
-            setRisk(0.9*$risk)
+            setRisk((float) 0.9*$risk)
         }
     end
 
@@ -130,11 +130,12 @@ rule "If dividend yield is between 3% and 5%, decrease risk estimate"
     no-loop
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
-        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close)
-        $dividend / $close > 0.03 and $dividend / $close < 0.05
+        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close,
+            $dividend / $close > 0.03,  $dividend / $close < 0.05
+        )
     then 
         modify($estimate) {
-            setRisk(0.9*$risk)
+            setRisk((float)0.9*$risk)
         }
     end
 
@@ -143,11 +144,12 @@ rule "If dividend yield is above 5%, decrease risk estimate"
     no-loop
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
-        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close)
-        $dividend / $close > 0.05
+        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close,
+            $dividend / $close > 0.05
+        )
     then 
         modify($estimate) {
-            setRisk(0.6*$risk)
+            setRisk((float) 0.6*$risk)
         }
     end
 
