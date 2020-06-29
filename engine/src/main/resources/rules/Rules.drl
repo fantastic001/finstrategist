@@ -7,8 +7,10 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 import com.stefan.main.Logger
+import com.stefan.main.Configuration;
 
 global Logger logger;
+global Configuration config;
 
 rule "If portfolio is not avalable in memory, create it"
     agenda-group "preprocess"
@@ -32,6 +34,8 @@ rule "if there is stock not present in portfolio (even with count = 0), add it"
         insert(asset);
 
 end
+
+// Estimations 
 
 rule "Create initial estimations with moving average"
     agenda-group "collect"
@@ -153,6 +157,118 @@ rule "If dividend yield is above 5%, decrease risk estimate"
         }
     end
 
+// -------------------------------
+rule "If value of portfolio is above predefined value, decrease risk"
+    agenda-group "collect"
+    no-loop
+    when 
+        Portfolio(cash > eval((float) config.getProperty("wealth_threshold", 1000000)))
+        $estimate : Estimate($risk : risk)
+        // TODO take into account whole portfolio
+        // Number(doubleValue > eval(config.getProperty("wealth_threshold", 1000000)))
+        // from accumulate(
+        //     ...
+        // )
+    then 
+        logger.log("Portfolio wealth threshold reached!");
+        modify($estimate) {
+            setRisk((float) 1.2*$risk)
+        }
+    end
+
+rule "If QR is above predefined value, risk is increased by 20%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $assets : assets, $liabilities : liabilities, $liabilities / $assets > (float) config.getProperty("qr_threshold", 1))
+    then 
+        modify($estimate) {
+            setRisk((float) 1.2*$risk)
+        }
+    end
+
+
+rule "If profit margin is below 2% value, risk is increased by 20%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $netIncome : netIncome, $totalRevenue : totalRevenue, $netIncome / $totalRevenue < 0.02)
+    then 
+        modify($estimate) {
+            setRisk((float) 1.2*$risk)
+        }
+    end
+
+
+rule "If profit margin is above 30% value, risk is decreased by 10%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $netIncome : netIncome, $totalRevenue : totalRevenue, $netIncome / $totalRevenue > 0.30)
+    then 
+        modify($estimate) {
+            setRisk((float) 0.9*$risk)
+        }
+    end
+
+
+rule "If QR < 20% , risk is increased by 70%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
+            ($CE + $NR) / $CL  < 0.2
+        )
+    then 
+        modify($estimate) {
+            setRisk((float) 1.7*$risk)
+        }
+    end
+
+
+
+rule "If QR is 20% - 70% , risk is increased by 10%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
+            ($CE + $NR) / $CL  > 0.2,
+            ($CE + $NR) / $CL  < 0.7
+        )
+    then 
+        modify($estimate) {
+            setRisk((float) 1.1*$risk)
+        }
+    end
+
+
+
+rule "If QR is > 200% , risk is decreased by 10%"
+    agenda-group "collect"
+    no-loop
+    when 
+        Stock($ticker : ticker)
+        $estimate : Estimate(ticker == $ticker, $risk : risk)
+        CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
+            ($CE + $NR) / $CL  > 2
+        )
+    then 
+        modify($estimate) {
+            setRisk((float) 0.9*$risk)
+        }
+    end
+
+// Estimation 
 
 rule "If there is no prepared decision for given stock and given day but there is estimation, initial create decision"
     agenda-group "estimate"
@@ -169,25 +285,59 @@ end
 
 // Decision making
 
-rule "Decision making"
+rule "Decision making for buy"
     agenda-group "decide"
     when 
         Stock($name : ticker, date == LocalDate.now())
         $decision : Decision(ticker == $name, date == LocalDate.now(), action == null)
-        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk),
+        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk);
             $expected_growth : average($g),
-            $expected_risk : average($r)
+            $expected_risk : average($r);
+            $expected_growth > eval((float)config.getProperty("expected_growth", 1.1)),
+            $expected_risk < eval((float)config.getProperty("expected_risk", 0.04))
         )
     then 
         logger.log("Found undecided estimation");
-        
+        modify($decision) {
+            setAction(Action.BUY)
+        };
+        modify($decision) {
+            setCount((int) 
+                (
+                    ($expected_growth - (double) config.getProperty("expected_growth", 1.1)) / ((double)config.getProperty("growth_resolution", 0.1))
+                )
+            )
+        };
 end
 
+
+
+rule "Decision making for sell"
+    agenda-group "decide"
+    when 
+        Stock($name : ticker, date == LocalDate.now())
+        $decision : Decision(ticker == $name, date == LocalDate.now(), action == null)
+        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk);
+            $expected_growth : average($g),
+            $expected_risk : average($r);
+            $expected_growth < eval((float)config.getProperty("expected_growth", 1.1)),
+            $expected_risk > eval((float)config.getProperty("expected_risk", 0.04))
+        )
+    then 
+        logger.log("Found undecided estimation");
+        modify($decision) {
+            setAction(Action.SELL)
+        };
+        modify($decision) {
+            setCount((int) (($expected_growth - (double) config.getProperty("expected_growth", 1.1)) / (double)config.getProperty("growth_resolution", 0.1)))
+        }
+end
 
 // Portfolio decision 
 
 rule "Portfolio decisions - buying with enough cash"
     agenda-group "portfolio"
+    no-loop
     when 
         Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
         Stock(ticker == $name, date == LocalDate.now(), $price : close)
@@ -205,6 +355,7 @@ end
 
 rule "Portfolio decisions - buying without enough cash"
     agenda-group "portfolio"
+    no-loop
     when 
         $decision : Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
         Stock(ticker == $name, date == LocalDate.now(), $price : close)
@@ -226,6 +377,7 @@ end
 
 rule "Portfolio decisions - selling existing assets"
     agenda-group "portfolio"
+    no-loop
     when 
         Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == LocalDate.now(), $price : close)
@@ -242,6 +394,7 @@ end
 
 rule "Portfolio decisions - selling non-existing assets"
     agenda-group "portfolio"
+    no-loop
     when 
         Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == LocalDate.now(), $price : close)

@@ -22,6 +22,7 @@ public class Engine {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
+			kSession.setGlobal("config", Configuration.getInstance());
 			return kSession;
 		} catch (Throwable t) {
 			t.printStackTrace();
