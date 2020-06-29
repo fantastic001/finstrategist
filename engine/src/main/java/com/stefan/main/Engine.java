@@ -50,6 +50,10 @@ public class Engine {
 			kSession.getAgenda().getAgendaGroup( "preprocess").setFocus();
 			kSession.fireAllRules();
 
+			kSession.getObjects(x -> x instanceof Decision).stream().forEach(x -> {
+				System.out.println("Decision for " + ((Decision) x).getTicker());
+			});
+
 
 
 		} catch (Throwable t) {
