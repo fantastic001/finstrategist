@@ -408,3 +408,41 @@ rule "Portfolio decisions - selling non-existing assets"
             setCash($cash + $price * $asset_count)
         }
 end 
+
+rule "Increase cash for every dividend paid on given date"
+    agenda-group "portfolio"
+    no-loop
+    when 
+        Stock($name : ticker, date == LocalDate.now(), $price : dividend)
+        Stock(ticker == $name, date == eval(LocalDate.now().minusDays(1)), dividend != $price)
+        PortfolioAsset(ticker == $name, $count : count)
+        $portfolio : Portfolio($cash : cash)
+    then 
+        modify ($portfolio) {
+            setCash($cash + $price * $count)
+        }
+end 
+
+// options rules
+
+rule "CALL options: When payoff is larger than predefined value, increase cash in portfolio"
+    agenda-group "portfolio"
+    when 
+        Option(maturityDate == LocalDate.now(), payoff > eval((float) config.getProperty("call_payoff_threshold", 0)), type == "CALL", $payoff : payoff)
+        $portfolio : Portfolio($cash : cash)
+    then 
+        modify ($portfolio) {
+            setCash((float) ($cash + $payoff))
+        }
+end 
+
+rule "PUT options: When payoff is larger than predefined value, increase cash in portfolio"
+    agenda-group "portfolio"
+    when 
+        Option(maturityDate == LocalDate.now(), payoff > eval((float) config.getProperty("put_payoff_threshold", 0)), type == "PUT", $payoff : payoff)
+        $portfolio : Portfolio($cash : cash)
+    then 
+        modify ($portfolio) {
+            setCash((float) ($cash + $payoff))
+        }
+end 
