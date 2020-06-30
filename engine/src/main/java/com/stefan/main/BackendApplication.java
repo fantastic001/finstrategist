@@ -14,8 +14,6 @@ public class BackendApplication extends SpringBootServletInitializer {
     	}
 
 	public static void main(String[] args) {
-		Engine engine = new Engine();
-		engine.sample(engine.getSession());
 		SpringApplication.run(BackendApplication.class, args);
 	}
 

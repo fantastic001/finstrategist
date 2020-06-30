@@ -1,9 +1,13 @@
 package com.stefan.controller;
 
+import com.stefan.service.PortfolioService;
 import com.stefan.service.StockService;
 
+import java.util.Collection;
 import java.util.List;
 
+import com.stefan.main.Engine;
+import com.stefan.model.Portfolio;
 import com.stefan.model.Stock;
 
 
@@ -18,11 +22,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping(value = "")
+@RequestMapping(value = "stock")
 public class StockController {
 	
 	@Autowired 
 	StockService stockService;
+
+	@Autowired
+	PortfolioService portfolioService;
 		
 	
 	@GetMapping(value="/")
@@ -38,7 +45,11 @@ public class StockController {
 	@PostMapping(consumes = "application/json")
 	public ResponseEntity<Long> save(@RequestBody Stock dto){
 		
+		Collection<Stock> stocks = stockService.findAll();
+		Portfolio portfolio = portfolioService.findAll().get(0);
+		Engine engine = new Engine(stocks, portfolio);
 		Stock stock = stockService.save(dto);
+		portfolioService.save(engine.decideOnStock(dto));
 		return new ResponseEntity<>(stock.getId(),HttpStatus.OK);
 	}
 	

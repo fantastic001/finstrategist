@@ -7,13 +7,17 @@ import org.kie.api.runtime.rule.FactHandle;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import com.stefan.model.*;
 
-@org.springframework.stereotype.Service
 public class Engine {
 
-	public KieSession getSession() {
+	private KieSession session;
+
+	private KieSession getSession() {
 		try {
 			System.out.println("Starting application....");
 			KieServices ks = KieServices.Factory.get();
@@ -23,42 +27,50 @@ public class Engine {
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
 			kSession.setGlobal("config", Configuration.getInstance());
-			return kSession;
-		} catch (Throwable t) {
-			t.printStackTrace();
-			return null;
-		}
-
-	}
-	public void sample(KieSession kSession) {
-		try { 
-			FactHandle fact1;
-			System.out.println("Inserting object into session");
-			if (kSession == null) System.out.println("kSession is null!");
-			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now(), 10,12,15,2,523543253, 44));
-			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(1), 10,12,15,2,523543253, 44));
-			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(2), 10,13,15,2,523543253, 44));
-			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(3), 10,14,15,2,523543253, 44));
-			fact1 = kSession.insert(new Stock("AAPL", LocalDate.now().minusDays(4), 10,15,15,2,523543253, 44));
-
-
-			System.out.println("Firing rules");
 			kSession.getAgenda().getAgendaGroup( "portfolio").setFocus();
 			kSession.getAgenda().getAgendaGroup( "decide").setFocus();
 			kSession.getAgenda().getAgendaGroup( "estimate").setFocus();
 			kSession.getAgenda().getAgendaGroup( "collect").setFocus();
 			kSession.getAgenda().getAgendaGroup( "preprocess").setFocus();
-			kSession.fireAllRules();
+			return kSession;
+		} catch (Throwable t) {
+			t.printStackTrace();
+			return null;
+		}
+	}
 
-			kSession.getObjects(x -> x instanceof Decision).stream().forEach(x -> {
-				System.out.println("Decision for " + ((Decision) x).getTicker());
-			});
+	public Engine(Collection<Stock> stocks, Portfolio portfolio) {
+		session = getSession();
+		for (Stock stock : stocks) {
+			session.insert(stock);
+		}
+		for (PortfolioAsset asset : portfolio.getAssets()) {
+			session.insert(asset);
+		}
+		session.insert(portfolio);
+	}
 
+	public Portfolio decideOnStock(Stock stock) {
+		try { 
+			FactHandle fact1;
+			System.out.println("Inserting object into session");
+			if (session == null) System.out.println("kSession is null!");
+			session.insert(stock);
 
+			session.fireAllRules();
 
+			Collection<PortfolioAsset> assets = session.getObjects(x -> x instanceof PortfolioAsset).stream().map(x -> {
+				return (PortfolioAsset) x;
+			}).collect(Collectors.toList());
+
+			float cash =  session.getObjects(x -> x instanceof Portfolio).stream().map(x -> {
+				return (Portfolio) x;
+			}).findFirst().get().getCash();
+			Portfolio result = new Portfolio(assets, cash);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+		return null;
 	}
 
 }

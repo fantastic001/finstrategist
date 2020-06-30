@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping(value = "")
+@RequestMapping(value = "portfolio-asset")
 public class PortfolioAssetController {
 	
 	@Autowired 

@@ -3,8 +3,15 @@ package com.stefan.model;
 import java.util.Date;
 import java.time.LocalDate;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
 public class Option {
 	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long id;
 	
 	private String name; 
 	
@@ -83,6 +90,14 @@ public class Option {
 	public void setMaturityDate(LocalDate newValue) 
 	{
 		this.maturityDate = newValue;
+	}
+
+	public Long getId() {
+		return id; 
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 	
 }
