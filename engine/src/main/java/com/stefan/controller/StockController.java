@@ -1,5 +1,6 @@
 package com.stefan.controller;
 
+import com.stefan.service.CompanyInfoService;
 import com.stefan.service.PortfolioService;
 import com.stefan.service.StockService;
 
@@ -30,7 +31,9 @@ public class StockController {
 
 	@Autowired
 	PortfolioService portfolioService;
-		
+	
+	@Autowired
+	CompanyInfoService companyInfoService;
 	
 	@GetMapping(value="/")
 	public ResponseEntity<List<Stock>> findAll(){
@@ -47,7 +50,7 @@ public class StockController {
 		
 		Collection<Stock> stocks = stockService.findAll();
 		Portfolio portfolio = portfolioService.findAll().get(0);
-		Engine engine = new Engine(stocks, portfolio);
+		Engine engine = new Engine(stocks, portfolio, companyInfoService.findAll());
 		Stock stock = stockService.save(dto);
 		portfolioService.save(engine.decideOnStock(dto));
 		return new ResponseEntity<>(stock.getId(),HttpStatus.OK);

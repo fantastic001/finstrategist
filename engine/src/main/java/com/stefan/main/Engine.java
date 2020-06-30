@@ -39,13 +39,16 @@ public class Engine {
 		}
 	}
 
-	public Engine(Collection<Stock> stocks, Portfolio portfolio) {
+	public Engine(Collection<Stock> stocks, Portfolio portfolio, Collection<CompanyInfo> infos) {
 		session = getSession();
 		for (Stock stock : stocks) {
 			session.insert(stock);
 		}
 		for (PortfolioAsset asset : portfolio.getAssets()) {
 			session.insert(asset);
+		}
+		for (CompanyInfo info : infos) {
+			session.insert(info);
 		}
 		session.insert(portfolio);
 	}
