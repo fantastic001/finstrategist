@@ -1,11 +1,12 @@
 package com.stefan.controller;
 
-import com.stefan.service.PortfolioAssetService;
+import com.stefan.service.CompanyInfoService;
 
 import java.util.List;
 
-import com.stefan.model.PortfolioAsset;
+import com.stefan.model.CompanyInfo;
 
+import com.stefan.model.CompanyInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,35 +19,35 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping(value = "portfolioAsset")
-public class PortfolioAssetController {
+@RequestMapping(value = "companyInfo")
+public class CompanyInfoController {
 	
 	@Autowired 
-	PortfolioAssetService portfolioAssetService;
+	CompanyInfoService companyInfoService;
 		
 	
 	@GetMapping(value="/")
-	public ResponseEntity<List<PortfolioAsset>> findAll(){
-		return new ResponseEntity<>(portfolioAssetService.findAll(), HttpStatus.OK);
+	public ResponseEntity<List<CompanyInfo>> findAll(){
+		return new ResponseEntity<>(companyInfoService.findAll(), HttpStatus.OK);
 	}
 	
 	@GetMapping(value="/{id}")
-	public ResponseEntity<PortfolioAsset> findOneByid(@PathVariable("id") Long id){
-		return new ResponseEntity<>(portfolioAssetService.findOneByid(id), HttpStatus.OK);
+	public ResponseEntity<CompanyInfo> findOneByid(@PathVariable("id") Long id){
+		return new ResponseEntity<>(companyInfoService.findOneByid(id), HttpStatus.OK);
 	}
 	
 	@PostMapping(consumes = "application/json")
-	public ResponseEntity<Long> save(@RequestBody PortfolioAsset dto){
+	public ResponseEntity<Long> save(@RequestBody CompanyInfo dto){
 		
-		PortfolioAsset portfolioAsset = portfolioAssetService.save(dto);
-		return new ResponseEntity<>(portfolioAsset.getId(),HttpStatus.OK);
+		CompanyInfo companyInfo = companyInfoService.save(dto);
+		return new ResponseEntity<>(companyInfo.getId(),HttpStatus.OK);
 	}
 	
 	
 	@PostMapping(value="/{id}", consumes = "application/json")
-	public ResponseEntity<Long> update(@RequestBody PortfolioAsset dto){
+	public ResponseEntity<Long> update(@RequestBody CompanyInfo dto){
 		
-		PortfolioAsset data = portfolioAssetService.save(dto);
+		CompanyInfo data = companyInfoService.save(dto);
 		return new ResponseEntity<>(data.getId(),HttpStatus.OK);
 	}
 }
