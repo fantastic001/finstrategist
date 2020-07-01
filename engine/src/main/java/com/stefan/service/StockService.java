@@ -23,6 +23,6 @@ public class StockService {
 		return stockRepository.findAll();
 	}
 	public Stock save(Stock stock) {
-		return null;
+		return stockRepository.save(stock);
 	}
 }

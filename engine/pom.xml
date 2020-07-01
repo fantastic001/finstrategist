@@ -6,7 +6,7 @@
   <packaging>war</packaging>
 <properties>
       <runtime.version>7.15.0.Final</runtime.version>
-      <start-class>com.stefan.main.BackendApplication</start-class>
+      <start-class>com.stefan.BackendApplication</start-class>
 </properties>
 	<parent>
 		<groupId>org.springframework.boot</groupId>

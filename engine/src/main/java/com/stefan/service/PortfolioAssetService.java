@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.stefan.model.PortfolioAsset;
 import com.stefan.repository.PortfolioAssetRepository;
+import com.stefan.repository.PortfolioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,10 @@ public class PortfolioAssetService {
 	}
 
 	public PortfolioAsset save(PortfolioAsset asset) {
-		return null;
+		return portfolioAssetRepository.save(asset);
+	}
+
+	public void deleteAll() {
+		portfolioAssetRepository.deleteAll();
 	}
 }

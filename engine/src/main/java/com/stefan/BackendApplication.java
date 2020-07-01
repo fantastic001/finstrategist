@@ -1,4 +1,4 @@
-package com.stefan.main;
+package com.stefan;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
