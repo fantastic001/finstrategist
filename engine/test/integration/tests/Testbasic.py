@@ -108,5 +108,5 @@ class Testbasic(unittest.TestCase):
             "cash": 2000000,
             "assets": []
         })
-        self.assertLess(2000000, requests.get("%s/portfolio/" % self.url).json()[0]["cash"])
+        self.assertGreater(2000000, requests.get("%s/portfolio/" % self.url).json()[0]["cash"])
 
