@@ -1,6 +1,8 @@
 package com.stefan.main;
 
+import org.drools.core.event.DebugAgendaEventListener;
 import org.kie.api.KieServices;
+import org.kie.api.event.rule.DefaultAgendaEventListener;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -32,6 +34,7 @@ public class Engine {
 			kSession.getAgenda().getAgendaGroup( "estimate").setFocus();
 			kSession.getAgenda().getAgendaGroup( "collect").setFocus();
 			kSession.getAgenda().getAgendaGroup( "preprocess").setFocus();
+			kSession.addEventListener(new DebugAgendaEventListener());
 			return kSession;
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -70,6 +73,8 @@ public class Engine {
 				return (Portfolio) x;
 			}).findFirst().get().getCash();
 			Portfolio result = new Portfolio(assets, cash);
+			result.setId(null);
+			return result;
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
