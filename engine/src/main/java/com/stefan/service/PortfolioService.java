@@ -23,6 +23,6 @@ public class PortfolioService {
 		return portfolioRepository.findAll();
 	}
 	public Portfolio save(Portfolio portfolio) {
-		return null;
+		return portfolioRepository.save(portfolio);
 	}
 }
