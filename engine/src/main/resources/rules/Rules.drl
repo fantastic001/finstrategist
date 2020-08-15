@@ -8,9 +8,12 @@ import java.util.ArrayList;
 
 import com.stefan.main.Logger
 import com.stefan.main.Configuration;
+import com.stefan.main.TimeProvider;
 
 global Logger logger;
 global Configuration config;
+global TimeProvider timeProvider;
+
 
 rule "If portfolio is not avalable in memory, create it"
     agenda-group "preprocess"
@@ -40,11 +43,11 @@ end
 rule "Create initial estimations with moving average"
     agenda-group "collect"
     when 
-        Stock($name : ticker, $today : date, date == LocalDate.now(), $c1 : close, $d1 : dividend)
-        Stock(ticker == $name, date == LocalDate.now().minusDays(1), $c2 : close, $d2 : dividend)
-        Stock(ticker == $name, date == LocalDate.now().minusDays(2), $c3 : close, $d3 : dividend)
-        Stock(ticker == $name, date == LocalDate.now().minusDays(3), $c4 : close, $d4 : dividend)
-        Stock(ticker == $name, date == LocalDate.now().minusDays(4), $c5 : close, $d5 : dividend)
+        Stock($name : ticker, $today : date, date == timeProvider.getToday(), $c1 : close, $d1 : dividend)
+        Stock(ticker == $name, date == timeProvider.getToday().minusDays(1), $c2 : close, $d2 : dividend)
+        Stock(ticker == $name, date == timeProvider.getToday().minusDays(2), $c3 : close, $d3 : dividend)
+        Stock(ticker == $name, date == timeProvider.getToday().minusDays(3), $c4 : close, $d4 : dividend)
+        Stock(ticker == $name, date == timeProvider.getToday().minusDays(4), $c5 : close, $d5 : dividend)
     then 
         logger.log("Creating estimate for " + $name);
         float mean = ($c1 + $c2 + $c3 + $c4 + $c5) / 5;
@@ -59,9 +62,9 @@ end
 rule "Create initial estimations with linear yearly estimate"
     agenda-group "collect"
     when 
-        Stock($name : ticker, $today : date, date == LocalDate.now(), $c1 : close)
-        Stock(ticker == $name, date == LocalDate.now().minusDays(365), $c2 : close)
-        accumulate(Stock(ticker == $name, eval(date.isAfter(LocalDate.now().minusDays(365))), $dividend : dividend, $close : close),
+        Stock($name : ticker, $today : date, date == timeProvider.getToday(), $c1 : close)
+        Stock(ticker == $name, date == timeProvider.getToday().minusDays(365), $c2 : close)
+        accumulate(Stock(ticker == $name, eval(date.isAfter(timeProvider.getToday().minusDays(365))), $dividend : dividend, $close : close),
             $mean_dividend : average($dividend),
             $mean_price : average($close)
         )
@@ -76,9 +79,9 @@ rule "Create estimate based on earnings growth"
 
     agenda-group "collect"
     when 
-        Stock($ticker : ticker, date == LocalDate.now(), $today : date)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : totalRevenue)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : totalRevenue)
+        Stock($ticker : ticker, date == timeProvider.getToday(), $today : date)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday(), $revenue : totalRevenue)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday().minusDays(1), $revenueOld : totalRevenue)
         accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue),
             $mean_revenue : average($r)
         )
@@ -91,9 +94,9 @@ rule "Create estimate based on assets growth"
 
     agenda-group "collect"
     when 
-        Stock($ticker : ticker, date == LocalDate.now(), $today : date)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : assets)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : assets)
+        Stock($ticker : ticker, date == timeProvider.getToday(), $today : date)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday(), $revenue : assets)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday().minusDays(1), $revenueOld : assets)
         accumulate(CompanyInfo(ticker == $ticker, $r : assets),
             $mean_revenue : average($r)
         )
@@ -106,9 +109,9 @@ rule "Create estimate based on earnings over share"
 
     agenda-group "collect"
     when 
-        Stock($ticker : ticker, date == LocalDate.now(), $close : close, $today : date)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now(), $revenue : totalRevenue)
-        CompanyInfo(ticker == $ticker, date == LocalDate.now().minusDays(1), $revenueOld : totalRevenue)
+        Stock($ticker : ticker, date == timeProvider.getToday(), $close : close, $today : date)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday(), $revenue : totalRevenue)
+        CompanyInfo(ticker == $ticker, date == timeProvider.getToday().minusDays(1), $revenueOld : totalRevenue)
         accumulate(CompanyInfo(ticker == $ticker, $r : totalRevenue),
             $mean_revenue : average($r / $close)
         )
@@ -121,7 +124,7 @@ rule "If there is recommendation for buying, decrease risk"
     no-loop
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
-        Recommendation(ticker == $ticker, date == LocalDate.now(), action == "BUY")
+        Recommendation(ticker == $ticker, date == timeProvider.getToday(), action == "BUY")
     then 
         modify($estimate) {
             setRisk((float) 0.9*$risk)
@@ -134,7 +137,7 @@ rule "If dividend yield is between 3% and 5%, decrease risk estimate"
     no-loop
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
-        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close,
+        Stock(ticker == $ticker, date == timeProvider.getToday(), $dividend : dividend, $close : close,
             $dividend / $close > 0.03,  $dividend / $close < 0.05
         )
     then 
@@ -148,7 +151,7 @@ rule "If dividend yield is above 5%, decrease risk estimate"
     no-loop
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
-        Stock(ticker == $ticker, date == LocalDate.now(), $dividend : dividend, $close : close,
+        Stock(ticker == $ticker, date == timeProvider.getToday(), $dividend : dividend, $close : close,
             $dividend / $close > 0.05
         )
     then 
@@ -273,12 +276,12 @@ rule "If QR is > 200% , risk is decreased by 10%"
 rule "If there is no prepared decision for given stock and given day but there is estimation, initial create decision"
     agenda-group "estimate"
     when 
-        Stock($name : ticker, date == LocalDate.now())
-        exists Estimate(ticker == $name, date == LocalDate.now())
-        not (exists Decision(ticker == $name, date == LocalDate.now()))
+        Stock($name : ticker, date == timeProvider.getToday())
+        exists Estimate(ticker == $name, date == timeProvider.getToday())
+        not (exists Decision(ticker == $name, date == timeProvider.getToday()))
     then 
         logger.log("Creating empty decision for " + $name);
-        insert(new Decision($name, LocalDate.now(), 0, null));
+        insert(new Decision($name, timeProvider.getToday(), 0, null));
 end
 
 
@@ -288,9 +291,9 @@ end
 rule "Decision making for buy"
     agenda-group "decide"
     when 
-        Stock($name : ticker, date == LocalDate.now())
-        $decision : Decision(ticker == $name, date == LocalDate.now(), action == null)
-        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk);
+        Stock($name : ticker, date == timeProvider.getToday())
+        $decision : Decision(ticker == $name, date == timeProvider.getToday(), action == null)
+        accumulate(Estimate(ticker == $name, date == timeProvider.getToday(), $g : growth, $r : risk);
             $expected_growth : average($g),
             $expected_risk : average($r);
             $expected_growth > eval((float)config.getProperty("expected_growth", 1.1)),
@@ -315,9 +318,9 @@ end
 rule "Decision making for sell"
     agenda-group "decide"
     when 
-        Stock($name : ticker, date == LocalDate.now())
-        $decision : Decision(ticker == $name, date == LocalDate.now(), action == null)
-        accumulate(Estimate(ticker == $name, date == LocalDate.now(), $g : growth, $r : risk);
+        Stock($name : ticker, date == timeProvider.getToday())
+        $decision : Decision(ticker == $name, date == timeProvider.getToday(), action == null)
+        accumulate(Estimate(ticker == $name, date == timeProvider.getToday(), $g : growth, $r : risk);
             $expected_growth : average($g),
             $expected_risk : average($r);
             $expected_growth < eval((float)config.getProperty("expected_growth", 1.1)),
@@ -339,8 +342,8 @@ rule "Portfolio decisions - buying with enough cash"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
-        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
+        Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio(cash >= $price * $count, $cash : cash )
         $asset : PortfolioAsset(ticker == $name, $asset_count : count)
     then 
@@ -357,8 +360,8 @@ rule "Portfolio decisions - buying without enough cash"
     agenda-group "portfolio"
     no-loop
     when 
-        $decision : Decision($name : ticker, date == LocalDate.now(), action == Action.BUY, $count : count)
-        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
+        Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio(cash < $price * $count, $cash : cash )
         $asset : PortfolioAsset(ticker == $name, $asset_count : count)
     then 
@@ -379,8 +382,8 @@ rule "Portfolio decisions - selling existing assets"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
-        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
+        Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio($cash : cash)
         $asset : PortfolioAsset(ticker == $name, $asset_count : count, count >= $count)
     then 
@@ -396,8 +399,8 @@ rule "Portfolio decisions - selling non-existing assets"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == LocalDate.now(), action == Action.SELL, $count : count)
-        Stock(ticker == $name, date == LocalDate.now(), $price : close)
+        Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
+        Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio($cash : cash)
         $asset : PortfolioAsset(ticker == $name, $asset_count : count, count < $count)
     then 
@@ -413,8 +416,8 @@ rule "Increase cash for every dividend paid on given date"
     agenda-group "portfolio"
     no-loop
     when 
-        Stock($name : ticker, date == LocalDate.now(), $price : dividend)
-        Stock(ticker == $name, date == eval(LocalDate.now().minusDays(1)), dividend != $price)
+        Stock($name : ticker, date == timeProvider.getToday(), $price : dividend)
+        Stock(ticker == $name, date == eval(timeProvider.getToday().minusDays(1)), dividend != $price)
         PortfolioAsset(ticker == $name, $count : count)
         $portfolio : Portfolio($cash : cash)
     then 
@@ -428,7 +431,7 @@ end
 rule "CALL options: When payoff is larger than predefined value, increase cash in portfolio"
     agenda-group "portfolio"
     when 
-        Option(maturityDate == LocalDate.now(), payoff > eval((float) config.getProperty("call_payoff_threshold", 0)), type == "CALL", $payoff : payoff)
+        Option(maturityDate == timeProvider.getToday(), payoff > eval((float) config.getProperty("call_payoff_threshold", 0)), type == "CALL", $payoff : payoff)
         $portfolio : Portfolio($cash : cash)
     then 
         modify ($portfolio) {
@@ -439,7 +442,7 @@ end
 rule "PUT options: When payoff is larger than predefined value, increase cash in portfolio"
     agenda-group "portfolio"
     when 
-        Option(maturityDate == LocalDate.now(), payoff > eval((float) config.getProperty("put_payoff_threshold", 0)), type == "PUT", $payoff : payoff)
+        Option(maturityDate == timeProvider.getToday(), payoff > eval((float) config.getProperty("put_payoff_threshold", 0)), type == "PUT", $payoff : payoff)
         $portfolio : Portfolio($cash : cash)
     then 
         modify ($portfolio) {

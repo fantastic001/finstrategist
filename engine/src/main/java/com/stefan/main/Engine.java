@@ -28,6 +28,7 @@ public class Engine {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
+			kSession.setGlobal("timeProvider", new RealTimeProvider());
 			kSession.setGlobal("config", Configuration.getInstance());
 			kSession.getAgenda().getAgendaGroup( "portfolio").setFocus();
 			kSession.getAgenda().getAgendaGroup( "decide").setFocus();
