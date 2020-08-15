@@ -342,7 +342,7 @@ rule "Portfolio decisions - buying with enough cash"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
+        $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio(cash >= $price * $count, $cash : cash )
         $asset : PortfolioAsset(ticker == $name, $asset_count : count)
@@ -353,6 +353,7 @@ rule "Portfolio decisions - buying with enough cash"
         modify ($portfolio) {
             setCash($cash - $price * $count)
         }
+        delete($decision);
 end 
 
 
@@ -375,6 +376,7 @@ rule "Portfolio decisions - buying without enough cash"
         modify ($portfolio) {
             setCash($cash - $price * newCount)
         }
+        delete($decision);
 end 
 
 
@@ -382,7 +384,7 @@ rule "Portfolio decisions - selling existing assets"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
+        $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio($cash : cash)
         $asset : PortfolioAsset(ticker == $name, $asset_count : count, count >= $count)
@@ -393,13 +395,14 @@ rule "Portfolio decisions - selling existing assets"
         modify ($portfolio) {
             setCash($cash + $price * $count)
         }
+        delete($decision);
 end 
 
 rule "Portfolio decisions - selling non-existing assets"
     agenda-group "portfolio"
     no-loop
     when 
-        Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
+        $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
         $portfolio : Portfolio($cash : cash)
         $asset : PortfolioAsset(ticker == $name, $asset_count : count, count < $count)
@@ -410,6 +413,7 @@ rule "Portfolio decisions - selling non-existing assets"
         modify ($portfolio) {
             setCash($cash + $price * $asset_count)
         }
+        delete($decision);
 end 
 
 rule "Increase cash for every dividend paid on given date"

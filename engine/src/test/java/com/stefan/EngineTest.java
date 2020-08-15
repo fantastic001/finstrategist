@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.stefan.main.Configuration;
@@ -29,8 +30,8 @@ public class EngineTest {
 
     @Test 
     public void testOnlyCash() {
-        Configuration.getInstance().setProperty("expected_growth", 0);
-        Configuration.getInstance().setProperty("expected_risk", 10000000);
+        Configuration.getInstance().setProperty("expected_growth", 0.0);
+        Configuration.getInstance().setProperty("expected_risk", 10000000.0);
         Portfolio portfolio = new Portfolio(new ArrayList<>(), 1000000);
         ArrayList<Stock> stocks = new ArrayList<>();
         stocks.add(new Stock("APPL", now.minusDays(6), 5, 7, 20, 1, 543543543, 500));
@@ -42,7 +43,8 @@ public class EngineTest {
         Engine engine = new Engine(stocks, portfolio, new ArrayList<>());
         engine.setTimeProvider(new MockTimeProvider(now));
         Portfolio result = engine.decideOnStock(new Stock("APPL", now, 5, 70000, 20000000, 1, 543543543, 500));
-        assertEquals(0, result.getCash(), 0.1);
+        assertEquals(160000, result.getCash(), 0.1);
+        assertEquals(result.getAssets().size(), 1);
         // engine.decideOnStock(new Stock());
     }
 }
