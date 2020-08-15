@@ -2,7 +2,16 @@ package com.stefan.main;
 
 import org.drools.core.event.DebugAgendaEventListener;
 import org.kie.api.KieServices;
+import org.kie.api.event.rule.AfterMatchFiredEvent;
+import org.kie.api.event.rule.AgendaEventListener;
+import org.kie.api.event.rule.AgendaGroupPoppedEvent;
+import org.kie.api.event.rule.AgendaGroupPushedEvent;
+import org.kie.api.event.rule.BeforeMatchFiredEvent;
 import org.kie.api.event.rule.DefaultAgendaEventListener;
+import org.kie.api.event.rule.MatchCancelledEvent;
+import org.kie.api.event.rule.MatchCreatedEvent;
+import org.kie.api.event.rule.RuleFlowGroupActivatedEvent;
+import org.kie.api.event.rule.RuleFlowGroupDeactivatedEvent;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -31,12 +40,74 @@ public class Engine {
 			kSession.setGlobal("logger", new Logger());
 			kSession.setGlobal("timeProvider", timeProvider);
 			kSession.setGlobal("config", Configuration.getInstance());
-			kSession.getAgenda().getAgendaGroup( "portfolio").setFocus();
-			kSession.getAgenda().getAgendaGroup( "decide").setFocus();
-			kSession.getAgenda().getAgendaGroup( "estimate").setFocus();
-			kSession.getAgenda().getAgendaGroup( "collect").setFocus();
-			kSession.getAgenda().getAgendaGroup( "preprocess").setFocus();
-			kSession.addEventListener(new DebugAgendaEventListener());
+			kSession.getAgenda().getAgendaGroup("portfolio").setFocus();
+			kSession.getAgenda().getAgendaGroup("decide").setFocus();
+			kSession.getAgenda().getAgendaGroup("estimate").setFocus();
+			kSession.getAgenda().getAgendaGroup("collect").setFocus();
+			kSession.getAgenda().getAgendaGroup("preprocess").setFocus();
+			kSession.addEventListener(new AgendaEventListener(){
+
+				@Override
+				public void matchCreated(MatchCreatedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void matchCancelled(MatchCancelledEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void beforeMatchFired(BeforeMatchFiredEvent event) {
+					System.out.println("MATCH: "+ event.getMatch().getRule().getName());
+
+				}
+
+				@Override
+				public void afterMatchFired(AfterMatchFiredEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void agendaGroupPopped(AgendaGroupPoppedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void agendaGroupPushed(AgendaGroupPushedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void beforeRuleFlowGroupActivated(RuleFlowGroupActivatedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void afterRuleFlowGroupActivated(RuleFlowGroupActivatedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void beforeRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void afterRuleFlowGroupDeactivated(RuleFlowGroupDeactivatedEvent event) {
+					// TODO Auto-generated method stub
+
+				}
+				
+			});
 			return kSession;
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -86,5 +157,6 @@ public class Engine {
 
 	public void setTimeProvider(TimeProvider timeProvider) {
 		this.timeProvider = timeProvider;
+		session.setGlobal("timeProvider", timeProvider);
 	}
 }
