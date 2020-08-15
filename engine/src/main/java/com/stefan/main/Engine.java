@@ -18,6 +18,7 @@ import com.stefan.model.*;
 public class Engine {
 
 	private KieSession session;
+	private TimeProvider timeProvider;
 
 	private KieSession getSession() {
 		try {
@@ -28,7 +29,7 @@ public class Engine {
 			System.out.println("Creating session....");
 			KieSession kSession = kContainer.newKieSession("ksession-rule");
 			kSession.setGlobal("logger", new Logger());
-			kSession.setGlobal("timeProvider", new RealTimeProvider());
+			kSession.setGlobal("timeProvider", timeProvider);
 			kSession.setGlobal("config", Configuration.getInstance());
 			kSession.getAgenda().getAgendaGroup( "portfolio").setFocus();
 			kSession.getAgenda().getAgendaGroup( "decide").setFocus();
@@ -44,6 +45,7 @@ public class Engine {
 	}
 
 	public Engine(Collection<Stock> stocks, Portfolio portfolio, Collection<CompanyInfo> infos) {
+		timeProvider = new RealTimeProvider();
 		session = getSession();
 		for (Stock stock : stocks) {
 			session.insert(stock);
@@ -82,4 +84,7 @@ public class Engine {
 		return null;
 	}
 
+	public void setTimeProvider(TimeProvider timeProvider) {
+		this.timeProvider = timeProvider;
+	}
 }
