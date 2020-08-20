@@ -300,7 +300,7 @@ rule "Decision making for buy"
             $expected_risk < eval((float)config.getProperty("expected_risk", 0.04))
         )
     then 
-        logger.log("Found undecided estimation");
+        logger.log("BUY: Found undecided estimation g = " + $expected_growth + " r = " + $expected_risk);
         modify($decision) {
             setAction(Action.BUY)
         };
@@ -327,12 +327,12 @@ rule "Decision making for sell"
             $expected_risk > eval((float)config.getProperty("expected_risk", 0.04))
         )
     then 
-        logger.log("Found undecided estimation");
+        logger.log("SELL: Found undecided estimation g = " + $expected_growth + " r = " + $expected_risk);
         modify($decision) {
             setAction(Action.SELL)
         };
         modify($decision) {
-            setCount((int) (($expected_growth - (double) config.getProperty("expected_growth", 1.1)) / (double)config.getProperty("growth_resolution", 0.1)))
+            setCount((int) (Math.abs($expected_growth - (double) config.getProperty("expected_growth", 1.1)) / (double)config.getProperty("growth_resolution", 0.1)))
         }
 end
 
