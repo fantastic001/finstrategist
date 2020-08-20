@@ -121,7 +121,8 @@ rule "Create estimate based on earnings over share"
 
 rule "If there is recommendation for buying, decrease risk"
     agenda-group "collect"
-    no-loop
+    no-loop true
+    lock-on-active true
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
         Recommendation(ticker == $ticker, date == timeProvider.getToday(), action == "BUY")
@@ -134,7 +135,8 @@ rule "If there is recommendation for buying, decrease risk"
 
 rule "If dividend yield is between 3% and 5%, decrease risk estimate"
     agenda-group "collect"
-    no-loop
+    no-loop true
+    lock-on-active true
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
         Stock(ticker == $ticker, date == timeProvider.getToday(), $dividend : dividend, $close : close,
@@ -148,7 +150,7 @@ rule "If dividend yield is between 3% and 5%, decrease risk estimate"
 
 rule "If dividend yield is above 5%, decrease risk estimate"
     agenda-group "collect"
-    no-loop
+    no-loop true
     when 
         $estimate : Estimate($ticker : ticker, $risk : risk)
         Stock(ticker == $ticker, date == timeProvider.getToday(), $dividend : dividend, $close : close,
@@ -162,8 +164,9 @@ rule "If dividend yield is above 5%, decrease risk estimate"
 
 // -------------------------------
 rule "If value of portfolio is above predefined value, decrease risk"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
         Portfolio(cash > eval((float) config.getProperty("wealth_threshold", 1000000)))
         $estimate : Estimate($risk : risk)
@@ -180,10 +183,11 @@ rule "If value of portfolio is above predefined value, decrease risk"
     end
 
 rule "If QR is above predefined value, risk is increased by 20%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker,  date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $assets : assets, $liabilities : liabilities, $liabilities / $assets > (float) config.getProperty("qr_threshold", 1))
     then 
@@ -194,10 +198,11 @@ rule "If QR is above predefined value, risk is increased by 20%"
 
 
 rule "If profit margin is below 2% value, risk is increased by 20%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker,  date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $netIncome : netIncome, $totalRevenue : totalRevenue, $netIncome / $totalRevenue < 0.02)
     then 
@@ -208,10 +213,11 @@ rule "If profit margin is below 2% value, risk is increased by 20%"
 
 
 rule "If profit margin is above 30% value, risk is decreased by 10%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker, date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $netIncome : netIncome, $totalRevenue : totalRevenue, $netIncome / $totalRevenue > 0.30)
     then 
@@ -222,10 +228,11 @@ rule "If profit margin is above 30% value, risk is decreased by 10%"
 
 
 rule "If QR < 20% , risk is increased by 70%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker,  date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
             ($CE + $NR) / $CL  < 0.2
@@ -239,10 +246,11 @@ rule "If QR < 20% , risk is increased by 70%"
 
 
 rule "If QR is 20% - 70% , risk is increased by 10%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker,  date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
             ($CE + $NR) / $CL  > 0.2,
@@ -257,10 +265,11 @@ rule "If QR is 20% - 70% , risk is increased by 10%"
 
 
 rule "If QR is > 200% , risk is decreased by 10%"
-    agenda-group "collect"
-    no-loop
+    agenda-group "postprocess"
+    no-loop true
+    lock-on-active true
     when 
-        Stock($ticker : ticker)
+        Stock($ticker : ticker,  date == timeProvider.getToday())
         $estimate : Estimate(ticker == $ticker, $risk : risk)
         CompanyInfo(ticker == $ticker, $CL : currentLiabilities, $CE : cash, $NR : netReceivables,
             ($CE + $NR) / $CL  > 2
@@ -340,7 +349,7 @@ end
 
 rule "Portfolio decisions - buying with enough cash"
     agenda-group "portfolio"
-    no-loop
+    no-loop true
     when 
         $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
@@ -359,7 +368,7 @@ end
 
 rule "Portfolio decisions - buying without enough cash"
     agenda-group "portfolio"
-    no-loop
+    no-loop true
     when 
         $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.BUY, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
@@ -382,7 +391,7 @@ end
 
 rule "Portfolio decisions - selling existing assets"
     agenda-group "portfolio"
-    no-loop
+    no-loop true
     when 
         $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
@@ -400,7 +409,7 @@ end
 
 rule "Portfolio decisions - selling non-existing assets"
     agenda-group "portfolio"
-    no-loop
+    no-loop true
     when 
         $decision : Decision($name : ticker, date == timeProvider.getToday(), action == Action.SELL, $count : count)
         Stock(ticker == $name, date == timeProvider.getToday(), $price : close)
@@ -418,7 +427,7 @@ end
 
 rule "Increase cash for every dividend paid on given date"
     agenda-group "portfolio"
-    no-loop
+    no-loop true
     when 
         Stock($name : ticker, date == timeProvider.getToday(), $price : dividend)
         Stock(ticker == $name, date == eval(timeProvider.getToday().minusDays(1)), dividend != $price)

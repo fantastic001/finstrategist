@@ -43,6 +43,7 @@ public class Engine {
 			kSession.getAgenda().getAgendaGroup("portfolio").setFocus();
 			kSession.getAgenda().getAgendaGroup("decide").setFocus();
 			kSession.getAgenda().getAgendaGroup("estimate").setFocus();
+			kSession.getAgenda().getAgendaGroup("postprocess").setFocus();
 			kSession.getAgenda().getAgendaGroup("collect").setFocus();
 			kSession.getAgenda().getAgendaGroup("preprocess").setFocus();
 			kSession.addEventListener(new AgendaEventListener(){

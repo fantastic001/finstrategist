@@ -13,6 +13,7 @@ import com.stefan.main.Configuration;
 import com.stefan.main.Engine;
 import com.stefan.main.MockTimeProvider;
 import com.stefan.main.TimeProvider;
+import com.stefan.model.CompanyInfo;
 import com.stefan.model.Portfolio;
 import com.stefan.model.PortfolioAsset;
 import com.stefan.model.Stock;
@@ -87,6 +88,28 @@ public class EngineTest {
         stocks.add(new Stock("APPL", now.minusDays(2), 5, 70, 200, 1, 543543543, 0));       
         stocks.add(new Stock("APPL", now.minusDays(1), 5, 7, 20, 1, 543543543, 0));       
         Engine engine = new Engine(stocks, portfolio, new ArrayList<>());
+        engine.setTimeProvider(new MockTimeProvider(now));
+        Portfolio result = engine.decideOnStock(new Stock("APPL", now, 5, 6, 20, 1, 543543543, 0));
+        assertTrue("Cash in portfolio should increase", result.getCash() > 0.0);
+    }
+
+    @Test 
+    public void testSellingWithCompanyInfo() {
+        Configuration.getInstance().setProperty("expected_growth", 0.3);
+        Configuration.getInstance().setProperty("expected_risk", 0.5);
+        ArrayList<PortfolioAsset> assets = new ArrayList<>();
+        ArrayList<CompanyInfo> infos = new ArrayList<>();
+        infos.add(new CompanyInfo("APPL", 1000000000, 500000000, 759437598, 1000000000, 10000000, 5435435, 0, 0, 0, now));
+        assets.add(new PortfolioAsset("APPL", 100));
+        Portfolio portfolio = new Portfolio(assets, 0);
+        ArrayList<Stock> stocks = new ArrayList<>();
+        stocks.add(new Stock("APPL", now.minusDays(6), 5, 70000, 200000, 1, 543543543, 500));
+        stocks.add(new Stock("APPL", now.minusDays(5), 5, 7000, 200000, 1, 543543543, 50));       
+        stocks.add(new Stock("APPL", now.minusDays(4), 5, 7000, 20000, 1, 543543543, 50));       
+        stocks.add(new Stock("APPL", now.minusDays(3), 5, 700, 2000, 1, 543543543, 5));       
+        stocks.add(new Stock("APPL", now.minusDays(2), 5, 70, 200, 1, 543543543, 0));       
+        stocks.add(new Stock("APPL", now.minusDays(1), 5, 7, 20, 1, 543543543, 0));       
+        Engine engine = new Engine(stocks, portfolio, infos);
         engine.setTimeProvider(new MockTimeProvider(now));
         Portfolio result = engine.decideOnStock(new Stock("APPL", now, 5, 6, 20, 1, 543543543, 0));
         assertTrue("Cash in portfolio should increase", result.getCash() > 0.0);
