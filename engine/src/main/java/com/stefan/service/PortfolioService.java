@@ -14,9 +14,14 @@ public class PortfolioService {
 	@Autowired
 	PortfolioRepository portfolioRepository;
 	
+	@Autowired
+	PortfolioAssetService portfolioAssetService;
+	
 	
 	public Portfolio findOneByid(Long id) {
-		return portfolioRepository.findOneByid(id);
+		Portfolio portfolio = portfolioRepository.findOneByid(id);
+		portfolio.setAssets(portfolioAssetService.findAll());
+		return portfolio;
 	}
 	
 	public List<Portfolio> findAll() {
