@@ -35,11 +35,12 @@ export default {
 		
 		
 		<p>
-		<input type="number" step="any" class="form-control" :placeholder="this.name" v-model="data" />
+		{{ name }}
+		<input type="number" step="any" v-model="data" />
+		<button  v-on:click="submit">Submit</button>
 		</p>
 		
 
-		<button type="button" class="btn btn-primary btn-lg btn-block" v-on:click="submit">Submit</button>
 	</div>
     </div>
 

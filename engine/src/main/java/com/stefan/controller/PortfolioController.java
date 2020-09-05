@@ -45,7 +45,7 @@ public class PortfolioController {
 	
 	@PostMapping(value="/{id}", consumes = "application/json")
 	public ResponseEntity<Long> update(@RequestBody Portfolio dto){
-		
+		portfolioService.deleteAll();
 		Portfolio data = portfolioService.save(dto);
 		return new ResponseEntity<>(data.getId(),HttpStatus.OK);
 	}

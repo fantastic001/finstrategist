@@ -16,9 +16,12 @@ export default {
     methods: 
     {
     	deleteItem: function() 
-	{
-		PortfolioService.delete(this.Portfolio).then(response => this.data = {});
-	}
+        {
+            PortfolioService.delete(this.Portfolio).then(response => this.data = {});
+        }, 
+        submit: function() {
+            PortfolioService.update(this.portfolio, this.data).then(response => console.log("Yeh"));
+        }
 	// add additional methods here
     }
 }
@@ -27,7 +30,10 @@ export default {
 <template>
 
 <div class="portfolio-view">
-<p>Cash {{ data.cash}}</p>
+<p>
+    Cash: <input type="number" step="any" v-model="data.cash" /> 
+    <button @click="submit">Change</button>
+</p>
 
 <table>
 

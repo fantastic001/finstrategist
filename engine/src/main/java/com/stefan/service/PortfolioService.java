@@ -30,4 +30,7 @@ public class PortfolioService {
 	public Portfolio save(Portfolio portfolio) {
 		return portfolioRepository.save(portfolio);
 	}
+	public void deleteAll() {
+		portfolioRepository.deleteAll();
+	}
 }
