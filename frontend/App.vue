@@ -28,6 +28,7 @@ export default {
         <router-link to='/'>Home</router-link>
         <router-link to='/addStock'>Add stock info</router-link>
         <router-link to='/configuration'>Configuration</router-link>
+        <router-link to='/submitCompanyInfo'>Submit Company Information</router-link>
 
 	</div>
 	
