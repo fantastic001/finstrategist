@@ -66,6 +66,7 @@ public class StockController {
 		Engine engine = new Engine(stocks, portfolio, companyInfoService.findAll());
 		System.out.println("Saving stock to db");
 		Stock stock = stockService.save(dto);
+		portfolioService.deleteAll();
 		System.out.println("Deciding on stock");
 		portfolioService.save(engine.decideOnStock(dto));
 		System.out.println("Deleting old portfolio state");
