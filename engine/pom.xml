@@ -5,7 +5,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
 <properties>
-      <runtime.version>7.15.0.Final</runtime.version>
+      <runtime.version>7.60.0.Final</runtime.version>
       <start-class>com.stefan.BackendApplication</start-class>
 </properties>
 	<parent>
